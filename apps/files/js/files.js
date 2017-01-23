@@ -28,6 +28,37 @@ Files={
 	}
 }
 $(document).ready(function() {
+	// THY: Button "Need Help?"
+	$('#assistant').click(function(event){
+		event.stopPropagation();
+		// THY TASK change dialog to be consistent with requirment "I need assistant"
+		var ok = OCdialogs.confirm("Do you request for Virtual Assistant?", "Virtual Assistant", function(yes){
+			if(yes){
+				// Move to 'files' app where tour begins
+				window.location.href="/owncloud/?app=files";
+				tour.start();
+			}
+		}, true );
+	});
+	// THY: Initialize Help Tour
+	var tour = new Tour({
+		steps: [{
+			element: "#logout",
+			title: "Title of my step",
+			content: "Content of my step<br>Step 1"
+		},
+		{
+			element: "#settings",
+			title: "Title of my step",
+			content: "Content of my step<br>Step 2"
+		}]
+	});
+	tour.init();
+	// Need to query never show again
+	if( ! neverShowAgain){
+		tour.start();
+	}
+
 	$('#fileList tr').each(function(){
 		//little hack to set unescape filenames in attribute
 		$(this).attr('data-file',decodeURIComponent($(this).attr('data-file')));

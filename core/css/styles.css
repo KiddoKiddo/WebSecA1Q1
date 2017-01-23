@@ -102,6 +102,7 @@ label.infield { cursor: text !important; }
 #expand+span { position:absolute; z-index:99; margin:-1.7em 0 0 2.5em; font-size:1.2em; color:#666; text-shadow:#f8f8f8 0 1px 0; -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=0)"; filter:alpha(opacity=0); opacity:0; -webkit-transition:opacity 300ms; -moz-transition:opacity 300ms; -o-transition:opacity 300ms; transition:opacity 300ms; }
 #expand:hover+span, #expand+span:hover { -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=100)"; filter:alpha(opacity=100); opacity:1; cursor:pointer; }
 #logout { position:absolute; right:0; top:0; padding:1.2em 2em .55em 1.2em; }
+#assistant {position: absolute; right: 250px;}
 
 
 /* VARIOUS REUSABLE SELECTORS */

@@ -29,6 +29,8 @@
 	<body id="<?php echo $_['bodyid'];?>">
 		<header><div id="header">
 			<a href="<?php echo link_to('', 'index.php'); ?>" title="" id="owncloud"><img class="svg" src="<?php echo image_path('', 'logo-wide.svg'); ?>" alt="ownCloud" /></a>
+			<!-- THY: Button "Need Help?" -->
+			<button id="assistant" title="<?php echo $l->t('Virtual Assistant');?>">Need Help?</button>
 			<form class="searchbox" action="#" method="post">
 				<input id="searchbox" class="svg" type="search" name="query" value="<?php if(isset($_POST['query'])){echo htmlentities($_POST['query']);};?>" autocomplete="off" />
 			</form>
@@ -42,7 +44,6 @@
 					</li>
 				<?php endforeach; ?>
 			</ul>
-
 			<ul id="settings" class="svg">
 				<img role=button tabindex=0 id="expand" class="svg" alt="<?php echo $l->t('Settings');?>" src="<?php echo image_path('', 'actions/settings.svg'); ?>" />
 				<span><?php echo $l->t('Settings');?></span>

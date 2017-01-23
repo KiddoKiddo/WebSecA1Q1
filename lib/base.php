@@ -263,12 +263,16 @@ class OC{
 		OC_Util::addScript( "js" );
 		OC_Util::addScript( "eventsource" );
 		OC_Util::addScript( "config" );
-		//OC_Util::addScript( "multiselect" );
+		// OC_Util::addScript( "multiselect" );
 		OC_Util::addScript('search','result');
 		OC_Util::addStyle( "styles" );
 		OC_Util::addStyle( "multiselect" );
 		OC_Util::addStyle( "jquery-ui-1.8.16.custom" );
 		OC_Util::addStyle( "jquery-tipsy" );
+
+		// THY
+		OC_Util::addScript( "bootstrap-tour-standalone.min" );
+		OC_Util::addStyle( "bootstrap-tour-standalone.min" );
 	}
 
 	public static function initSession() {

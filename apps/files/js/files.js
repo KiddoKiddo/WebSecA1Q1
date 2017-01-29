@@ -31,33 +31,90 @@ $(document).ready(function() {
 	// THY: Button "Need Help?"
 	$('#assistant').click(function(event){
 		event.stopPropagation();
-		// THY TASK change dialog to be consistent with requirment "I need assistant"
+		// THY TODO change dialog to be consistent with requirment "I need assistant"
 		var ok = OCdialogs.confirm("Do you request for Virtual Assistant?", "Virtual Assistant", function(yes){
 			if(yes){
-				// Move to 'files' app where tour begins
+				// Redirect to 'files' app where tour begins
 				window.location.href="/owncloud/?app=files";
-				tour.start();
 			}
 		}, true );
 	});
 	// THY: Initialize Help Tour
+	var totalStep = 4;
 	var tour = new Tour({
 		steps: [{
-			element: "#logout",
-			title: "Title of my step",
-			content: "Content of my step<br>Step 1"
+				element: ".file_upload_button_wrapper",
+				title: "Upload file",
+				content: "Click arrow button to upload a file.<br>(Upload a file to go to next step)",
+				onShow: function(tour){
+					//$('.tour-next').prop( "disabled", true );	
+				}
+			},
+			{
+				element: ".nametext:first",
+				title: "Edit file",
+				content: "Click file name to open and edit file."
+			},
+			{
+				element: "tr[data-type=file]:first td:first a.action:nth-child(2)",
+				title: "Upload file",
+				content: "Mouseover filename and click \"Share\" to share.",
+				onShow: function(tour){
+					// To show buttons for this step	
+					$("tr[data-type=file]:first").trigger('mouseenter');
+					$('tr').die('mouseleave'); // Temporarily
+				}
+			},
+			{
+				element: "tr[data-type=file]:first a.action.delete",
+				title: "Delete file",
+				content: "Click <img class=\"svg\" src=\"./core/img/actions/delete.svg\"/> symbol to delete file.<br><label><input type='checkbox' id='never-show'>Never shows this in the future</label>",
+				placement: "left",
+				onShow: function(tour){
+					// To show buttons for this step
+					$("tr[data-type=file]:first").trigger('mouseenter');
+					$('tr').die('mouseleave'); // Temporarily
+				}
+			}
+		],
+		template: function(i, step){
+			// Progress bar
+			var progressBar = "";
+			var blackDot = "<svg height='15' width='15'><circle cx='7' cy='7' r='6' fill='black'/></svg>";
+			var whiteDot = "<svg height='15' width='15'><circle cx='7' cy='7' r='5' fill='white' stroke='black' stroke-width='2'/></svg>";
+			for(var t=0; t<i+1; t++){ progressBar+=blackDot; }
+			for(var t=0; t<(totalStep-i-1); t++){ progressBar+=whiteDot; }
+			return "<div class='popover tour'>"+
+					"<div class='arrow'></div>"+
+					"<h3 class='popover-title'></h3>"+
+					"<div class='popover-content'></div>"+
+					"<div class='progress-bar' style='padding: 0px 14px;'>"+progressBar+"</div>"+
+					"<div class='popover-navigation'>"+
+						"<button class='btn btn-default tour-prev' data-role='prev'>« Prev</button>"+
+						"<button class='btn btn-default tour-next' data-role='next'>Next »</button>"+
+						"<button class='btn btn-default tour-end' data-role='end'>End tour</button>"+
+					"</div>"+
+				"</div>";
 		},
-		{
-			element: "#settings",
-			title: "Title of my step",
-			content: "Content of my step<br>Step 2"
-		}]
+		storage: false,
+		onEnd: function(tour){
+			// Turn on live show again
+			// Get "Never show again" checkbox
+			var neverShow = $("#never-show").is(':checked');
+			console.log(neverShow);
+			if(neverShow){
+				// Sent request to never show again
+
+				// To remove force quit in URL
+				window.location.href="/owncloud/?app=files";
+			}
+		}
 	});
 	tour.init();
-	// Need to query never show again
-	if( ! neverShowAgain){
-		tour.start();
-	}
+	tour.start(true);
+
+	// THY: query never show again
+	// TODO
 
 	$('#fileList tr').each(function(){
 		//little hack to set unescape filenames in attribute
@@ -304,6 +361,10 @@ $(document).ready(function() {
 						} else {
 							var jqXHR =  $('.file_upload_start').fileupload('send', {files: files[i]})
 									.success(function(result, textStatus, jqXHR) {
+										// THY: Done upload file, move to next step of tour
+										console.log("Done upload file.");
+										tour.next();
+
 										var response;
 										response=jQuery.parseJSON(result);
 										if(response[0] != undefined && response[0].status == 'success') {

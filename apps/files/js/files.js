@@ -35,6 +35,7 @@ $(document).ready(function() {
 		var ok = OCdialogs.confirm("Do you need help?", "Virtual Assistant", function(yes){
 			if(yes){
 				// Redirect to 'files' app where tour begins
+				console.log('Here');
 				window.location.href="/owncloud/?app=files&forceTour=true";
 			}
 		}, true );
@@ -128,8 +129,10 @@ $(document).ready(function() {
 			console.log('GET neverShow', neverShow);
 			
 			if(! neverShow){
-				// Activate assistant
-				$('#assistant').click();		
+				// Activate assistant (wait a bit because page refresh tiwce)
+				setTimeout(function(){
+					$('#assistant').click();
+				}, 1000); 	
 			}
 		});
 	}

@@ -32,10 +32,10 @@ $(document).ready(function() {
 	$('#assistant').click(function(event){
 		event.stopPropagation();
 		// THY TODO change dialog to be consistent with requirment "I need assistant"
-		var ok = OCdialogs.confirm("Do you request for Virtual Assistant?", "Virtual Assistant", function(yes){
+		var ok = OCdialogs.confirm("Do you need help?", "Virtual Assistant", function(yes){
 			if(yes){
 				// Redirect to 'files' app where tour begins
-				window.location.href="/owncloud/?app=files";
+				window.location.href="/owncloud/?app=files&forceTour=true";
 			}
 		}, true );
 	});
@@ -43,36 +43,36 @@ $(document).ready(function() {
 	var totalStep = 4;
 	var tour = new Tour({
 		steps: [{
-				element: ".file_upload_button_wrapper",
-				title: "Upload file",
-				content: "Click arrow button to upload a file.<br>(Upload a file to go to next step)",
-				onShow: function(tour){
-					//$('.tour-next').prop( "disabled", true );	
+				element: '.file_upload_button_wrapper',
+				title: 'Upload file',
+				content: 'Click arrow button to upload a file.<br>(Upload a file to go to next step)',
+				onShown: function(tour){
+					$('.tour-next').prop( 'disabled', true );
 				}
 			},
 			{
-				element: ".nametext:first",
-				title: "Edit file",
-				content: "Click file name to open and edit file."
+				element: '.nametext:first',
+				title: 'Edit file',
+				content: 'Click file name to open and edit file.'
 			},
 			{
-				element: "tr[data-type=file]:first td:first a.action:nth-child(2)",
-				title: "Upload file",
-				content: "Mouseover filename and click \"Share\" to share.",
+				element: 'tr[data-type=file]:first td:first a.action:nth-child(2)',
+				title: 'Upload file',
+				content: 'Mouseover filename and click "Share" to share.',
 				onShow: function(tour){
 					// To show buttons for this step	
-					$("tr[data-type=file]:first").trigger('mouseenter');
+					$('tr[data-type=file]:first').trigger('mouseenter');
 					$('tr').die('mouseleave'); // Temporarily
 				}
 			},
 			{
-				element: "tr[data-type=file]:first a.action.delete",
-				title: "Delete file",
-				content: "Click <img class=\"svg\" src=\"./core/img/actions/delete.svg\"/> symbol to delete file.<br><label><input type='checkbox' id='never-show'>Never shows this in the future</label>",
-				placement: "left",
+				element: 'tr[data-type=file]:first a.action.delete',
+				title: 'Delete file',
+				content: 'Click <img class="svg" src="./core/img/actions/delete.svg"/> symbol to delete file.',
+				placement: 'left',
 				onShow: function(tour){
 					// To show buttons for this step
-					$("tr[data-type=file]:first").trigger('mouseenter');
+					$('tr[data-type=file]:first').trigger('mouseenter');
 					$('tr').die('mouseleave'); // Temporarily
 				}
 			}
@@ -84,37 +84,55 @@ $(document).ready(function() {
 			var whiteDot = "<svg height='15' width='15'><circle cx='7' cy='7' r='5' fill='white' stroke='black' stroke-width='2'/></svg>";
 			for(var t=0; t<i+1; t++){ progressBar+=blackDot; }
 			for(var t=0; t<(totalStep-i-1); t++){ progressBar+=whiteDot; }
-			return "<div class='popover tour'>"+
-					"<div class='arrow'></div>"+
-					"<h3 class='popover-title'></h3>"+
-					"<div class='popover-content'></div>"+
-					"<div class='progress-bar' style='padding: 0px 14px;'>"+progressBar+"</div>"+
-					"<div class='popover-navigation'>"+
-						"<button class='btn btn-default tour-prev' data-role='prev'>« Prev</button>"+
-						"<button class='btn btn-default tour-next' data-role='next'>Next »</button>"+
-						"<button class='btn btn-default tour-end' data-role='end'>End tour</button>"+
-					"</div>"+
-				"</div>";
+			return '<div class="popover tour">'+
+					'<div class="arrow"></div>'+
+					'<h3 class="popover-title"></h3>'+
+					'<div class="popover-content"></div>'+
+					'<div class="progress-bar" style="padding: 0px 14px;">'+progressBar+'</div>'+
+					'<label><input type="checkbox" id="never-show">Never shows this in the future</label>'+
+					'<div class="popover-navigation">'+
+						'<button class="btn btn-default tour-prev" data-role="prev">« Prev</button>'+
+						'<button class="btn btn-default tour-next" data-role="next">Next »</button>'+
+						'<button class="btn btn-default tour-end" data-role="end">End tour</button>'+
+					'</div>'+
+				'</div>';
 		},
 		storage: false,
 		onEnd: function(tour){
 			// Turn on live show again
 			// Get "Never show again" checkbox
 			var neverShow = $("#never-show").is(':checked');
-			console.log(neverShow);
+			console.log('SET neverShow', neverShow);
+			// Sent request to never show again $user, 'tour', 'nevershow', 'true'
 			if(neverShow){
-				// Sent request to never show again
-
-				// To remove force quit in URL
-				window.location.href="/owncloud/?app=files";
+				$.get(OC.filePath('files','ajax','tourpreferences.php'), {action: 'set'}, function(response){
+					console.log(response);
+				});
+			}
+			if(window.location.href.indexOf('forceTour') > -1){
+				// To remove forceTour in URL
+				history.pushState(null, null, '/owncloud/?app=files');
 			}
 		}
 	});
 	tour.init();
-	tour.start(true);
 
 	// THY: query never show again
-	// TODO
+	var neverShow = false;
+	if(window.location.href.indexOf('forceTour') > -1){
+		console.log('forceTour');
+		tour.start(true);
+	} else {
+		$.get(OC.filePath('files','ajax','tourpreferences.php'), {action: 'get'}, function(response){
+			neverShow = neverShow || response.data;
+			console.log('GET neverShow', neverShow);
+			
+			if(! neverShow){
+				// Activate assistant
+				$('#assistant').click();		
+			}
+		});
+	}
 
 	$('#fileList tr').each(function(){
 		//little hack to set unescape filenames in attribute

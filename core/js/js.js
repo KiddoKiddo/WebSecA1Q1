@@ -334,12 +334,13 @@ function fillHeight(selector) {
 /**
  * Fills height and width of window. (more precise than height: 100%; or width: 100%;)
  */
-function fillWindow(selector) {
+function fillWindow(selector, rightOffset) {
 	if (selector.length == 0) {
 		return;
 	}
 	fillHeight(selector);
-	var width = parseFloat($(window).width())-selector.offset().left;
+	rightOffset = rightOffset || 0;
+	var width = parseFloat($(window).width())-selector.offset().left-rightOffset;
 	selector.css('width', width + 'px');
 	if(selector.outerWidth() > selector.width())
 		selector.css('width', width-(selector.outerWidth()-selector.width()) + 'px');

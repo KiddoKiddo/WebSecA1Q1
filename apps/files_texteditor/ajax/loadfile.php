@@ -48,3 +48,4 @@ if(!empty($filename))
 } else {
 	OCP\JSON::error(array('data' => array( 'message' => 'Invalid file path supplied.')));	
 }
+

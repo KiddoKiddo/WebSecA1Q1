@@ -35,7 +35,6 @@ $(document).ready(function() {
 		var ok = OCdialogs.confirm("Do you need help?", "Virtual Assistant", function(yes){
 			if(yes){
 				// Redirect to 'files' app where tour begins
-				console.log('Here');
 				window.location.href="/owncloud/?app=files&forceTour=true";
 			}
 		}, true );
@@ -63,7 +62,6 @@ $(document).ready(function() {
 				onShow: function(tour){
 					// To show buttons for this step	
 					$('tr[data-type=file]:first').trigger('mouseenter');
-					$('tr').die('mouseleave'); // Temporarily
 				}
 			},
 			{
@@ -74,7 +72,6 @@ $(document).ready(function() {
 				onShow: function(tour){
 					// To show buttons for this step
 					$('tr[data-type=file]:first').trigger('mouseenter');
-					$('tr').die('mouseleave'); // Temporarily
 				}
 			}
 		],
@@ -383,8 +380,8 @@ $(document).ready(function() {
 							var jqXHR =  $('.file_upload_start').fileupload('send', {files: files[i]})
 									.success(function(result, textStatus, jqXHR) {
 										// THY: Done upload file, move to next step of tour
-										console.log("Done upload file.");
-										tour.next();
+										console.log("Done upload file.", tour);
+										if(tour._inited) tour.next();
 
 										var response;
 										response=jQuery.parseJSON(result);

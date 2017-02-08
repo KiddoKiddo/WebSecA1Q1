@@ -1,6 +1,6 @@
 function setEditorSize(){
 	// Sets the size of the text editor window.
-	fillWindow($('#editor'));
+	fillWindow($('#editor'), 220);
 }
 
 function getFileExtension(file){
@@ -64,13 +64,17 @@ function setSyntaxMode(ext){
 	}
 }
 
-function showControls(filename,writeperms){
+function showControls(filename, writeperms, commentperms){
 	// Loads the control bar at the top.
 	// Load the new toolbar.
 	var editorbarhtml = '<div id="editorcontrols" style="display: none;"><div class="crumb svg last" id="breadcrumb_file" style="background-image:url(&quot;'+OC.imagePath('core','breadcrumb.png')+'&quot;)"><p>'+filename.replace(/</, "&lt;").replace(/>/, "&gt;")+'</p></div>';
 	if(writeperms=="true"){
 		editorbarhtml += '<button id="editor_save">'+t('files_texteditor','Save')+'</button><div class="separator"></div>';
 	}
+	// THY: TODO Implement comment permission
+	//if(commentperms == 'true'){
+		editorbarhtml += '<button id="comment_btn">'+t('files_texteditor','Comment')+'</button><div class="separator"></div>';
+	//}	
 	editorbarhtml += '<label for="editorseachval">Search:</label><input type="text" name="editorsearchval" id="editorsearchval"><div class="separator"></div><button id="editor_close">'+t('files_texteditor','Close')+'</button></div>';
 	// Change breadcrumb classes
 	$('#controls .last').removeClass('last');
@@ -80,6 +84,7 @@ function showControls(filename,writeperms){
 
 function bindControlEvents(){
 	$("#editor_save").die('click',doFileSave).live('click',doFileSave);
+	$("#comment_btn").die('click',insertCommentEditor).live('click',insertCommentEditor);
 	$('#editor_close').die('click',hideFileEditor).live('click',hideFileEditor);
 	$('#editorsearchval').die('keyup', doSearch).live('keyup', doSearch);
 	$('#clearsearchbtn').die('click', resetSearch).live('click', resetSearch);
@@ -173,6 +178,49 @@ function doFileSave(){
 	giveEditorFocus();
 };
 
+// THY: Insert comment editor
+function insertCommentEditor(){
+	console.log($('#editor').data());
+
+	var line = window.aceEditor.$lastrow;
+	console.log('Insert comment-editor in current line', line);
+	
+	if($('.comment-editor').length > 0){
+		$('.comment-editor').remove();	
+	}
+	$('#commentwrapper')
+		.append('<div class="comment-editor" style="top: '+line*20+'px;" data-line="'+line+'">'+
+			'<textarea class="comment-textarea"></textarea><br>'+
+			'<button class="comment-save">Save</button>'+
+			'<button class="comment-cancel">Cancel</button>'+
+			'</div>');
+}
+// THY: Save comment
+$('.comment-save').live('click', function(){
+	var comment = $('.comment-textarea').val();
+	var line = $(this).parent().data()['line'];
+
+	$.post(OC.filePath('files_texteditor','ajax','savecomment.php'), {comment: comment, line: line}, function(response){
+		console.log(response);
+	});
+	
+	$('.comment-editor').remove();
+	$('#commentwrapper').append('<div class="comment-token" style="top: '+line*20+'px;" data-line="'+line+'">'+comment+' '+
+								'<span class="comment-owner">'+OC.currentUser+'</span> | <span class="comment-detete">x</span></div>');
+});
+// Cancel comment
+$('.comment-cancel').live('click', function(){
+	$('.comment-editor').remove();
+});
+// Delete comment
+$('.comment-detete').live('click', function(){
+	var line = $(this).parent().data()['line'];
+	
+	// THY: TODO delete comment
+
+	$(this).parent().remove();
+});
+
 // Gives the editor focus
 function giveEditorFocus(){
 	window.aceEditor.focus();
@@ -182,9 +230,12 @@ function giveEditorFocus(){
 function showFileEditor(dir,filename){
 	// Delete any old editors
 	$('#editor').remove();
+	$('#commentwrapper').remove();
+
 	if(!editorIsShown()){
 		// Loads the file editor and display it.
 		$('#content').append('<div id="editor"></div>');
+		$('#content').append('<div id="commentwrapper"></div>');
 		var data = $.getJSON(
 			OC.filePath('files_texteditor','ajax','loadfile.php'),
 			{file:filename,dir:dir},
@@ -222,9 +273,22 @@ function showFileEditor(dir,filename){
 							}
 						});
 						// Add the ctrl+s event
-						window.aceEditor.commands.addCommand({							name: "save",							bindKey: {							win: "Ctrl-S",							mac: "Command-S",							sender: "editor"							},							exec: function(){
+						window.aceEditor.commands.addCommand({
+							name: "save",
+							bindKey: {
+							win: "Ctrl-S",
+							mac: "Command-S",
+							sender: "editor"
+							},
+							exec: function(){
 								doFileSave();	
-							}						});
+							}
+						});
+
+						// THY: Initialize comment session
+
+						// THY: TODO load comments (if any)
+
 					});
 				} else {
 					// Failed to get the file.
@@ -273,6 +337,9 @@ function hideFileEditor(){
 			$('.actions,#file_access_panel').fadeIn('slow');
 			$('table').fadeIn('slow');
 		});
+		$('#commentwrapper').fadeOut('slow', function(){
+			$(this).remove();
+		});
 		is_editor_shown = false;
 	}
 }
@@ -283,6 +350,7 @@ function reopenEditor(){
 	$('table').fadeOut('slow', function(){
 		$('#controls .last').not('#breadcrumb_file').removeClass('last');
 		$('#editor').fadeIn('fast');
+		$('#commentwrapper').fadeIn('slow');
 		$('#editorcontrols').fadeIn('fast', function(){
 
 		});
@@ -321,6 +389,7 @@ $(document).ready(function(){
 	// Binds the file save and close editor events, and gotoline button
 	bindControlEvents();
 	$('#editor').remove();
+	$('#commentwrapper').remove();
 	$('#notification').click(function(){
 		if($('#notification').data('reopeneditor'))
 		{

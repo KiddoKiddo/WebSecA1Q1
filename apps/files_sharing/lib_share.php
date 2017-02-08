@@ -27,6 +27,7 @@ class OC_Share {
 
 	const WRITE = 1;
 	const DELETE = 2;
+	const COMMENT = 3; // THY
 	const UNSHARED = -1;
 	const PUBLICLINK = "public";
 

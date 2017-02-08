@@ -20,3 +20,32 @@
 	margin-top: 3px;
 	float: left;
 }
+#commentwrapper{
+	background: rgba(0, 0, 0, 0.1);
+    height: 100%;
+
+	/* Similar to editor */
+    position: fixed;
+    display: block;
+    top: 6.1em;
+    right: 0;
+	width: 220px;
+}
+.comment-editor, .comment-token{
+	background: #1d2d44;
+	color: white;
+	position: absolute;
+	padding: 2px 5px;
+	margin-left: 5px;
+	border-radius: 5px; 
+}
+.comment-textarea{
+	 resize: none;
+}
+.comment-detete{
+	cursor: pointer;
+}
+.comment-owner{
+	font-size: 9px;
+	font-style: italic;
+}

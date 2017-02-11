@@ -87,7 +87,7 @@ class OC_Mail {
 		}
 		$mailo->CharSet = 'UTF-8';
 
-		error_log('mail.php ' . $mailo->Send());
+		error_log('mail.php ' . ($mailo->Send() == 1? 'Success' : 'Fail'));
 		error_log('mail.php ' . $mailo->ErrorInfo);
 		unset($mailo);
 

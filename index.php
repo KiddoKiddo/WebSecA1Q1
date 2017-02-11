@@ -56,6 +56,10 @@ elseif(OC_User::isLoggedIn()) {
 	OC_App::loadApps();
 	if(isset($_GET["logout"]) and ($_GET["logout"])) {
 		OC_User::logout();
+
+		// THY delete cookie noaskhelp
+		setcookie("noaskhelp", "", time() - 3600);
+
 		header("Location: ".OC::$WEBROOT.'/');
 		exit();
 	}else{

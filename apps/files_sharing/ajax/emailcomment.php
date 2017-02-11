@@ -13,7 +13,7 @@ $link = $_POST['link'];
 
 $subject = '['.$user.'] invite ['.$uid_shared_with.'] to comment on ['.$file.']';
 
-$text = '['.$user.'] invite ['.$uid_shared_with.'] to comment on ['.$file.'].<br><br>It is available for viewing here: '.$link.'<br><br>';
+$text = '['.$user.'] invite ['.$uid_shared_with.'] to comment on ['.$file.'].<br><br>It is available for commenting here: '.$link.'<br><br>';
 
 $fromaddress = OCP\Config::getUserValue($user, 'settings', 'email', 'sharing-noreply@'.OCP\Util::getServerHost());
 OCP\Util::sendMail($_POST['toaddress'], $toaddress, $subject, $text, $fromaddress, $user);

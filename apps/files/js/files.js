@@ -40,7 +40,7 @@ $(document).ready(function() {
 				}
 			},
 			{
-				element: '.nametext:first',
+				element: 'tr[data-type=file]:first .nametext:first',
 				title: 'Edit file',
 				content: 'Click file name to open and edit file.'
 			},
@@ -76,7 +76,7 @@ $(document).ready(function() {
 					'<h3 class="popover-title"></h3>'+
 					'<div class="popover-content"></div>'+
 					'<div class="progress-bar" style="padding: 0px 14px;">'+progressBar+'</div>'+
-					'<label><input type="checkbox" id="never-show">Never shows this in the future</label>'+
+					'<label style="padding: 0 11px;"><input type="checkbox" id="never-show">Never shows this in the future</label>'+
 					'<div class="popover-navigation">'+
 						'<button class="btn btn-default tour-prev" data-role="prev">« Prev</button>'+
 						'<button class="btn btn-default tour-next" data-role="next">Next »</button>'+
@@ -109,6 +109,8 @@ $(document).ready(function() {
 	if(window.location.href.indexOf('forceTour') > -1){
 		console.log('forceTour');
 		tour.start(true);
+	} else if(document.cookie.indexOf('noaskhelp') > -1){
+		console.log('noaskhelp');
 	} else {
 		$.get(OC.filePath('files','ajax','tourpreferences.php'), {action: 'get'}, function(response){
 			neverShow = neverShow || response.data;
@@ -116,7 +118,10 @@ $(document).ready(function() {
 			
 			if(! neverShow){
 				// Activate assistant (wait a bit because page refresh tiwce)
-				$('#assistant').click();
+				setTimeout(function(){
+					$('#assistant').click();
+					document.cookie = "noaskhelp=true;";
+				}, 1000);
 			}
 		});
 	}

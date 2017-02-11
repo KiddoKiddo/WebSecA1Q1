@@ -10,5 +10,10 @@ $CONFIG = array(
 "dbuser" => 'oc_student',
 "dbpassword" => '5a1d1e840c2da58ac2d5582164cee1b5',
 "installed" => true,
+"mail_smtpmode" => 'smtp',
+"mail_smtphost" => 'smtp.gmail.com',
+"mail_smtpauth" => true,
+"mail_smtpname" => 'owncloudserver1234@gmail.com',
+"mail_smtppassword" => '1234owncloudserver'
 );
 ?>

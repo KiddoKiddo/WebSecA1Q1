@@ -47,12 +47,21 @@ class OC_Mail {
 			$mailo->IsMail();
 		}
 
-
 		$mailo->Host = $SMTPHOST;
 		$mailo->SMTPAuth = $SMTPAUTH;
 		$mailo->Username = $SMTPUSERNAME;
 		$mailo->Password = $SMTPPASSWORD;
 
+		// THY extra
+		$mailo->IsSMTP(); // enable SMTP
+		$mailo->SMTPDebug = 0;  // debugging: 1 = errors and messages, 2 = messages only
+		$mailo->SMTPAuth = true;  // authentication enabled
+		$mailo->SMTPSecure = 'ssl'; // secure transfer enabled REQUIRED for GMail
+		$mailo->Host = 'smtp.gmail.com'; // instead of smtp.gmail.com
+		$mailo->Port = 465; 
+		$mailo->Username = 'owncloudserver1234@gmail.com';  
+		$mailo->Password = '1234owncloudserver';
+	
 		$mailo->From =$fromaddress;
 		$mailo->FromName = $fromname;;
 		$a=explode(' ',$toaddress);
@@ -78,11 +87,11 @@ class OC_Mail {
 		}
 		$mailo->CharSet = 'UTF-8';
 
-		$mailo->Send();
+		error_log('mail.php ' . $mailo->Send());
+		error_log('mail.php ' . $mailo->ErrorInfo);
 		unset($mailo);
 
 		OC_Log::write('Mail from '.$fromname.' ('.$fromaddress.')'.' to: '.$toname.'('.$toaddress.')'.' subject: '.$subject,'mail',OC_Log::DEBUG);
-
 	}
 
 

@@ -57,6 +57,13 @@ OC.Share={
 			}
 		});
 	},
+	changePermissionsComment:function(source, uid_shared_with, permissions_comment) {
+		$.post(OC.filePath('files_sharing','ajax','setpermissionscomment.php'), { source: source, uid_shared_with: uid_shared_with, permissions_comment: permissions_comment }, function(result) {
+			if (!result || result.status !== 'success') {
+				OC.dialogs.alert('Error', 'Error while changing permissions comment');
+			}
+		});
+	},
 	showDropDown:function(item, appendTo) {
 		OC.Share.loadItem(item);
 		var html = '<div id="dropdown" class="drop" data-item="'+item+'">';
@@ -100,18 +107,19 @@ OC.Share={
 		if (OC.Share.itemUsers) {
 			$.each(OC.Share.itemUsers, function(index, user) {
 				if (user.parentFolder) {
-					OC.Share.addSharedWith(user.uid, user.permissions, false, user.parentFolder);
+					OC.Share.addSharedWith(user.uid, user.permissions, user.permissions_comment,  false, user.parentFolder);
 				} else {
-					OC.Share.addSharedWith(user.uid, user.permissions, false, false);
+					OC.Share.addSharedWith(user.uid, user.permissions, user.permissions_comment, false, false);
 				}
 			});
 		}
 		if (OC.Share.itemGroups) {
 			$.each(OC.Share.itemGroups, function(index, group) {
+				// THY: share comment not apply for group
 				if (group.parentFolder) {
-					OC.Share.addSharedWith(group.gid, group.permissions, group.users, group.parentFolder);
+					OC.Share.addSharedWith(group.gid, group.permissions, 0, group.users, group.parentFolder);
 				} else {
-					OC.Share.addSharedWith(group.gid, group.permissions, group.users, false);
+					OC.Share.addSharedWith(group.gid, group.permissions, 0, group.users, false);
 				}
 			});
 		}
@@ -129,17 +137,19 @@ OC.Share={
 			}
 		});
 	},
-	addSharedWith:function(uid_shared_with, permissions, isGroup, parentFolder) {
+	addSharedWith:function(uid_shared_with, permissions, permissions_comment, isGroup, parentFolder) {
 		if (parentFolder) {
 			var sharedWith = '<li>Parent folder '+parentFolder+' shared with '+uid_shared_with+'</li>';
 		} else {
 			var checked = ((permissions > 0) ? 'checked="checked"' : 'style="display:none;"');
+			var checked_comment = ((permissions_comment > 0) ? 'data-comment="true" value="Stop comment"' : 'data-comment="false" value="Invite comment" style="display:none;"');
 			var style = ((permissions == 0) ? 'style="display:none;"' : '');
-			var sharedWith = '<li data-uid_shared_with="'+uid_shared_with+'">';
+			var sharedWith = '<li data-uid_shared_with="'+uid_shared_with+'" style="font-size: 10px;">';
 			sharedWith += '<a href="" class="unshare" style="display:none;"><img class="svg" alt="Unshare" src="'+OC.imagePath('core','actions/delete')+'"/></a>';
 			sharedWith += uid_shared_with;
+			sharedWith += '<input type="button" name="permissions_comment" id="'+uid_shared_with+'_comment" class="permissions_comment" '+checked_comment+' />';
 			sharedWith += '<input type="checkbox" name="permissions" id="'+uid_shared_with+'" class="permissions" '+checked+' />';
-			sharedWith += '<label class="edit" for="'+uid_shared_with+'" '+style+'>can edit</label>';
+			sharedWith += '<label for="'+uid_shared_with+'" '+style+'>edit</label>';
 			sharedWith += '</li>';
 		}
 		if (isGroup) {
@@ -207,6 +217,17 @@ OC.Share={
 		$('#email').animate({ fontWeight: 'normal' }, 2000, function() {
 			$(this).val('');
 		}).val('Email sent');
+	},
+	emailComment:function(file, uid_shared_with){
+		$.get(OC.filePath('files_sharing', 'ajax', 'getuseremail.php'), {uid_shared_with: uid_shared_with}, function(response){
+			if(response['status'] == 'success'){
+				console.log(response);
+				var email = response['data']['email'];
+				link = parent.location.protocol+'//'+location.host+OC.linkTo('', 'index.php')+'?app=files&dir=/Shared';
+
+			 	$.post(OC.filePath('files_sharing', 'ajax', 'emailcomment.php'), { toaddress: email, uid_shared_with: uid_shared_with, link: link, file: file});
+			}
+		});	
 	},
 	dirname:function(path) {
 		return path.replace(/\\/g,'/').replace(/\/[^\/]*$/, '');
@@ -302,9 +323,10 @@ $(document).ready(function() {
 						users = group.users;
 					}
 				});
-				OC.Share.addSharedWith(uid_shared_with, 0, users, false);
+				// THY: permissions_comment = 0 to init
+				OC.Share.addSharedWith(uid_shared_with, 0, 0, users, false);
 			} else {
-				OC.Share.addSharedWith(uid_shared_with, 0, false, false);
+				OC.Share.addSharedWith(uid_shared_with, 0, 0, false, false);
 			}
 			// Change icon
 			if (!OC.Share.itemPrivateLink) {
@@ -330,6 +352,24 @@ $(document).ready(function() {
 	$('.permissions').live('change', function() {
 		var permissions = (this.checked) ? 1 : 0;
 		OC.Share.changePermissions($('#dropdown').data('item'), $(this).parent().data('uid_shared_with'), permissions);
+	});
+	// THY
+	$('.permissions_comment').live('click', function() {
+		var permissions_comment  = $(this).attr('data-comment') == 'true';
+		console.log('Comment before change', permissions_comment);
+		permissions_comment = ! permissions_comment;
+
+		// Set in DB
+		OC.Share.changePermissionsComment($('#dropdown').data('item'), $(this).parent().data('uid_shared_with'), permissions_comment? 1 : 0);
+
+		// Set in UI
+		$(this).val( permissions_comment? "Stop comment" : "Invite comment" );
+		$(this).attr('data-comment', permissions_comment);
+
+		// Send email
+		if(permissions_comment){
+			OC.Share.emailComment($('#dropdown').data('item'), $(this).parent().data('uid_shared_with'));
+		}
 	});
 	
 	$('#privateLinkCheckbox').live('change', function() {

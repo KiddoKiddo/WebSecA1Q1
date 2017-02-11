@@ -48,9 +48,9 @@ while ($path != $userDirectory) {
 					}
 				} else {
 					if ($path == $source) {
-						$user = array(array('uid' => $uid_shared_with, 'permissions' => $rows[$i]['permissions'], 'parentFolder' => false));
+						$user = array(array('uid' => $uid_shared_with, 'permissions' => $rows[$i]['permissions'], 'permissions_comment' => $rows[$i]['permissions_comment'], 'parentFolder' => false));
 					} else {
-						$user = array(array('uid' => $uid_shared_with, 'permissions' => $rows[$i]['permissions'], 'parentFolder' => basename($path)));
+						$user = array(array('uid' => $uid_shared_with, 'permissions' => $rows[$i]['permissions'], 'permissions_comment' => $rows[$i]['permissions_comment'], 'parentFolder' => basename($path)));
 					}
 					if (!isset($item['users'])) {
 						$item['users'] = $user;

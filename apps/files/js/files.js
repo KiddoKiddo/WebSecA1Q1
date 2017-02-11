@@ -28,17 +28,6 @@ Files={
 	}
 }
 $(document).ready(function() {
-	// THY: Button "Need Help?"
-	$('#assistant').click(function(event){
-		event.stopPropagation();
-		// THY TODO change dialog to be consistent with requirment "I need assistant"
-		var ok = OCdialogs.confirm("Do you need help?", "Virtual Assistant", function(yes){
-			if(yes){
-				// Redirect to 'files' app where tour begins
-				window.location.href="/owncloud/?app=files&forceTour=true";
-			}
-		}, true );
-	});
 	// THY: Initialize Help Tour
 	var totalStep = 4;
 	var tour = new Tour({
@@ -127,9 +116,7 @@ $(document).ready(function() {
 			
 			if(! neverShow){
 				// Activate assistant (wait a bit because page refresh tiwce)
-				setTimeout(function(){
-					$('#assistant').click();
-				}, 1000); 	
+				$('#assistant').click();
 			}
 		});
 	}

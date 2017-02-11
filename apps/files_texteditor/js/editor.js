@@ -180,7 +180,13 @@ function doFileSave(){
 
 // THY: Insert comment editor
 function insertCommentEditor(){
-	console.log($('#editor').data());
+	// Check permissions to edit
+	var data = $('#editor').data();
+	console.log('Editor data', data);
+	if(data['permissions_comment'] == 0){
+		OCdialogs.alert('You are not allowed to comment.', "Error");
+		return false;
+	}
 
 	var line = window.aceEditor.$lastrow;
 	console.log('Insert comment-editor in current line', line);
@@ -200,25 +206,64 @@ $('.comment-save').live('click', function(){
 	var comment = $('.comment-textarea').val();
 	var line = $(this).parent().data()['line'];
 
-	$.post(OC.filePath('files_texteditor','ajax','savecomment.php'), {comment: comment, line: line}, function(response){
-		console.log(response);
-	});
-	
-	$('.comment-editor').remove();
-	$('#commentwrapper').append('<div class="comment-token" style="top: '+line*20+'px;" data-line="'+line+'">'+comment+' '+
-								'<span class="comment-owner">'+OC.currentUser+'</span> | <span class="comment-detete">x</span></div>');
+	var data = $('#editor').data();
+
+	// To save
+	$.post(OC.filePath('files_texteditor','ajax','savecomment.php'), 
+		{dir: data.dir, filename: data.filename, comment: comment, line: line}, 
+		function(response){
+			console.log('Save comment: ', response);
+
+			if(response['status'] == 'success'){
+				var comment_id = response['comment_id'];
+				$('.comment-editor').remove();
+				insertComment(comment_id, OC.currentUser, line, comment);
+			} else {
+				OCdialogs.alert(response['message'], "Error");
+				$('.comment-editor').remove();
+			}
+		});
 });
-// Cancel comment
+function insertComment(id, user, line, comment){
+	var attribute = 'data-line="'+line+'" data-id="'+id+'" data-user="'+user+'"';
+	$('#commentwrapper').append('<div class="comment-token" style="top: '+line*20+'px;" '+attribute+'>'+comment+' '+
+				'<span class="comment-owner">'+user+'</span> | <span class="comment-detete">x</span></div>');
+}
+// THY: Cancel comment
 $('.comment-cancel').live('click', function(){
 	$('.comment-editor').remove();
 });
-// Delete comment
+// THY: Delete comment
 $('.comment-detete').live('click', function(){
-	var line = $(this).parent().data()['line'];
-	
-	// THY: TODO delete comment
+	var comment_token = $(this).parent();
+	var comment_data = $(this).parent().data();
+	var line = comment_data['line'];
+	var user = comment_data['user'];
+	var comment_id = comment_data['id'];
 
-	$(this).parent().remove();
+	// To check permission to delete
+	var data = $('#editor').data();
+	console.log('Editor data', data);
+	if( ! data['is_owner'] && data['permissions_comment'] == 0){
+		OCdialogs.alert('You are not allowed to delete comment.', "Error");
+		return false;
+	}
+	if(! data['is_owner'] && data['permissions_comment'] == 1 && user != OC.currentUser){
+		OCdialogs.alert('You are not allowed to delete other people\'s comment.', "Error");
+		return false;
+	}
+
+	// To delete
+	$.post(OC.filePath('files_texteditor','ajax','deletecomment.php'), 
+		{comment_id: comment_id, dir: data.dir, filename: data.filename}, 
+		function(response){
+			console.log('Delete comment: ', response);
+			if(response['status'] == 'success'){
+				comment_token.remove();
+			} else {
+				OCdialogs.alert(response['message'], "Error");
+			}
+		});
 });
 
 // Gives the editor focus
@@ -286,9 +331,19 @@ function showFileEditor(dir,filename){
 						});
 
 						// THY: Initialize comment session
-
-						// THY: TODO load comments (if any)
-
+						$.get(OC.filePath('files_texteditor','ajax','getcomments.php'), 
+							{dir: dir, filename: filename}, 
+							function(response){
+								console.log('Get comments: ', response);
+								if(response['comments']){
+									for(var i in response['comments']){
+										var c = response['comments'][i];
+										insertComment(c['comment_id'], c['uid'], c['line'], c['comment']);
+									}
+								}
+								$('#editor').attr('data-permissions_comment', response['permissions_comment']);
+								$('#editor').attr('data-is_owner', response['is_owner']);
+							});
 					});
 				} else {
 					// Failed to get the file.
